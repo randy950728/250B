@@ -1,4 +1,6 @@
 from mnist import MNIST
+import scipy.stats as stats
+from matplotlib import pyplot
 import random
 from sklearn.neighbors import NearestNeighbors
 import numpy as np
@@ -15,7 +17,7 @@ global num_per_digit
 
 orig_train_size = len(train_image)
 test_size		= len(test_image)
-sample_size 	= int(orig_train_size*0.1)
+sample_size 	= int(orig_train_size/6*0.5)
 num_per_digit 	= int(sample_size/10)
 
 #Euclidean Distance between 2 function
@@ -55,12 +57,12 @@ def sort(train_image):
 
 	for i in range(num_pixel):
 		avg_train[i]=float(sum(train_image[:][i]))/float(len(train_image))
+	print(avg_train)
+	for i in range(num_image):
+		all_diff[i] = (train_image[i]-avg_train)**2
 
 	for i in range(num_image):
-		all_diff[i] = abs(train_image[i]-avg_train)
-
-	for i in range(num_image):
-		sum_diff[i] = np.sum(all_diff[i,:])
+		sum_diff[i] = np.sum(all_diff[i,:])**0.5
 	result = [(sum_diff[i], train_image[i]) for i in range(num_image)]
 	reversed(sorted(result))
 	return result
@@ -80,6 +82,11 @@ def sort(train_image):
 	# sorted_array=sorted(unique_array)
 	# print(sorted_array)
 
+#function that finds the closest index given the value in a sorted array
+#-------------------------#
+def find_index(val, array):
+	idx = (np.abs(array-value)).argmin()
+	return idx
 
 #Merge sort sampling function
 #-------------------------#
@@ -87,22 +94,45 @@ def merge_sampling(train_image, train_label):
 	global num_per_digit
 	sub_image =[]
 	sub_label =[]
-	distrib=0.95
+	distrib=0.30
 	# Split the the input image into 10 digits
 	cat_train_image = [[] for i in range(10)]
 	for i in range(len(train_image)):
 		num_group = train_label[i]
-		# cat_train_image[num_group].append(train_image[i])
 		cat_train_image[num_group].append(train_image[i])
+
 	for i in range(10):
 		result = sort(cat_train_image[i])
+		res_size = len(result)
+
+		# Extract only ranking info
+		diff_inf = [result[j][0] for j in range(res_size)]
+		avg_diff = np.average(diff_inf)
+		std_diff = np.std(diff_inf)
+
+		# locate boundary
+
+
+		fit = stats.norm.pdf(test, np.mean(test), np.std(test))
+		pyplot.hist(test,normed=True)
+		pyplot.show()
+
+		# print("test",i,test)
+
+
 		for j in range(int(num_per_digit*distrib)):
-			sub_image.append(result[j][1])
+			sub_image.append(result[res_size-1-j][1])
 			sub_label.append(i)
+
 		for j in range(int(num_per_digit*(1-distrib))):
-			sub_image.append(result[len(result)-j-1][1])
+			if(res_size/2)>int(num_per_digit*(1-distrib)):
+				sub_image.append(result[res_size/2-j][1])
+			else:
+				offset = num_per_digit*(1-distrib)-len(res_size)/2
+				sub_image.append(result[res_size/2+offset-j][1])
 			sub_label.append(i)
 	return sub_image,sub_label
+
 # Printing some info #
 #-------------------------#
 print("input size", len(train_image))
@@ -129,8 +159,9 @@ print(len(baseline_train_image))
 # Data sampling
 #-------------------------#
 index_array = range(0,orig_train_size)
-new_image, new_label = merge_sampling(train_image,train_label)
+new_image, new_label = merge_sampling(train_image, train_label)
 print(len(new_image), len(baseline_train_image))
+
 #1-NN function
 #-------------------------#
 def onn(item, train_image, train_label):
