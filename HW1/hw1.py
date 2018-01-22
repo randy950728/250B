@@ -95,6 +95,8 @@ def merge_sampling(train_image, train_label):
 	sub_image =[]
 	sub_label =[]
 	distrib=0.30
+	normal_distrib = [0.3415, 0.1359, 0.0214, 0.0013]
+	
 	# Split the the input image into 10 digits
 	cat_train_image = [[] for i in range(10)]
 	for i in range(len(train_image)):
@@ -111,7 +113,11 @@ def merge_sampling(train_image, train_label):
 		std_diff = np.std(diff_inf)
 
 		# locate boundary
-
+		mean_idx = find_index(avg_diff, diff_inf)
+		po_std_idx = find_index(avg_diff+std_diff, diff_inf)
+		pt_std_idx = find_index(avg_diff+2*std_diff, diff_inf)
+		mo_std_idx = find_index(avg_diff-std_diff, diff_inf)
+		mt_std_idx = find_index(avg_diff-2*std_diff, diff_inf)
 
 		fit = stats.norm.pdf(test, np.mean(test), np.std(test))
 		pyplot.hist(test,normed=True)
