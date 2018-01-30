@@ -16,7 +16,7 @@ test_image,  test_label  = mndata.load_testing()		#Read testing image and label
 global num_per_digit
 orig_train_size = len(train_image)
 test_size		= len(test_image)
-sample_size 	= int(orig_train_size/6/5*0.5)
+sample_size 	= int(7500)
 num_per_digit 	= int(sample_size/10)
 
 
@@ -95,7 +95,7 @@ def merge_sampling(train_image, train_label):
 
 		# Calculate sample spacing
 		space_a = [int((pos_std_idx[j+1]-pos_std_idx[j])/samp_per_std[j]) for j in range(3)]
-		space_b = [int((pos_std_idx[j+1]-pos_std_idx[j])/samp_per_std[j]) for j in range(3)]
+		space_b = [int((neg_std_idx[j]-neg_std_idx[j+1])/samp_per_std[j]) for j in range(3)]
 
 		# Take samples from each deviation
 		for j in range(3):
@@ -173,34 +173,34 @@ def test_model(train_set, train_label, test_image, test_label):
 	rate = float(correct)/float(len(test_image))
 	return rate
 
+for i in range(11):
+	# Baseline sampling
+	#-------------------------#
+	index_array = range(0, orig_train_size)
+	baseline_train_image = []
+	baseline_train_label = []
+	curr_size=0
+	while(curr_size<sample_size):
+		index_index = random.randrange(len(index_array))
+		index = index_array[index_index]
+		baseline_train_image.append(train_image[index])
+		baseline_train_label.append(train_label[index])
+		del(index_array[index_index])
+		curr_size+=1
 
-# Baseline sampling
-#-------------------------#
-index_array = range(0, orig_train_size)
-baseline_train_image = []
-baseline_train_label = []
-curr_size=0
-while(curr_size<sample_size):
-	index_index = random.randrange(len(index_array))
-	index = index_array[index_index]
-	baseline_train_image.append(train_image[index])
-	baseline_train_label.append(train_label[index])
-	del(index_array[index_index])
-	curr_size+=1
 
+	# Data sampling
+	#-------------------------#
+	index_array = range(0,orig_train_size)
+	new_image, new_label = merge_sampling(train_image, train_label)
+	print(len(new_image), len(baseline_train_image))
 
-# Data sampling
-#-------------------------#
-index_array = range(0,orig_train_size)
-new_image, new_label = merge_sampling(train_image, train_label)
-print(len(new_image), len(baseline_train_image))
-
-# Model Testing
-#-------------------------#
-# base = test_model(baseline_train_image,baseline_train_label, test_image,test_label)
-new  = test_model(new_image,new_label, test_image,test_label)
-# print("baseline model "+str(base))
-print("new model " + str(new))
+	# Model Testing
+	#-------------------------#
+	base = test_model(baseline_train_image,baseline_train_label, test_image,test_label)
+	# new  = test_model(new_image,new_label, test_image,test_label)
+	print("baseline model "+str(base))
+	# print("new model " + str(new))
 
 
 # Scrapped code
