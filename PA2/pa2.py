@@ -13,14 +13,13 @@ def quick_convert(datum):
 
 # Function that calculate gradient descent of a singel feature
 def gradient_descent(w,label,feature,index):
-	eta=0.4
+	eta=0.0025
 	grad=0.0
 	comb=zip(label, feature)
 	for datum in comb:
 		neg_prob = 1/(1+np.exp(datum[0]*np.dot(w,datum[1])))
 
 		grad += datum[0]*datum[1][index]*neg_prob
-
 	new_w=w
 	new_w[index] = new_w[index]+eta*grad
 	return new_w
@@ -50,19 +49,18 @@ def random_regression(label, feature, iter):
 	random.seed()
 	num_feat = len(feature[0])
 	w=np.zeros(num_feat)
-	total_w = []
+	total_loss = []
 	for i in range(iter):
 		rand_feat = random.randrange(num_feat)
-		total_w.append(w)
+		total_loss.append(lost_func(label,feature,w))
 		w = gradient_descent(w, label, feature, rand_feat)
-	print(total_w)
-	return (w, total_w)
+	return (w, total_loss)
 
 # Function to be worked on
 def model_regression(label,feature,iter):
 	all_loss = [0.0]*14
 	w=np.zeros(14)
-	total_w = []
+	total_loss=[]
 	for i in range(iter):
 		if(i%5==0):
 			for j in range(14):
@@ -72,10 +70,11 @@ def model_regression(label,feature,iter):
 			sorted_seq = sorted(seq,key=lambda x: x[0])
 			sorted_seq.reverse
 			idx_seq = [sorted_seq[i][1] for i in range(3)]
-
+		total_loss.append(lost_func(label,feature,w))
 		w = gradient_descent(w, label, feature, idx_seq[i%3])
-		total_w.append(w)
-	return (w, total_w)
+	total_loss.append(lost_func(label,feature,w))
+	# print(total_w)
+	return (w, total_loss)
 
 
 # Open file
@@ -113,14 +112,9 @@ for i in range(len(feature[0])):
 	feature[:,i]
 
 w = default_regression(label,feature)
-w2, tot_1 = random_regression(label,norm_feat, 1000)
-w3,  tot_2 = model_regression(label,norm_feat, 1000)
-print(tot_1)
+w2, loss_1 = random_regression(label,norm_feat, 1000)
+w3, loss_2 = model_regression(label,norm_feat, 1000)
 
-loss_1=[lost_func(label,feature,datum) for datum in tot_1]
-loss_2=[lost_func(label,feature,datum) for datum in tot_2]
-
-# print (loss_1)
 pplot.plot(range(len(loss_1)),loss_1)
 # pplot.plot(range(len(loss_2)),loss_2)
 pplot.show()
