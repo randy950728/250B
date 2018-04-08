@@ -12,15 +12,13 @@ def quick_convert(datum):
 	return temp
 
 # Function that calculate gradient descent of a singel feature
-def gradient_descent(w,label,feature,index):
-	eta=0.0025
+def gradient_descent(w,label,feature,index,eta):
 	grad=0.0
 	comb=zip(label, feature)
 	for datum in comb:
 		neg_prob = 1/(1+np.exp(datum[0]*np.dot(w,datum[1])))
-
 		grad += datum[0]*datum[1][index]*neg_prob
-	new_w=w
+	new_w=list(w)
 	new_w[index] = new_w[index]+eta*grad
 	return new_w
 
@@ -53,7 +51,7 @@ def random_regression(label, feature, iter):
 	for i in range(iter):
 		rand_feat = random.randrange(num_feat)
 		total_loss.append(lost_func(label,feature,w))
-		w = gradient_descent(w, label, feature, rand_feat)
+		w = gradient_descent(w, label, feature, rand_feat,0.0018)
 	return (w, total_loss)
 
 # Function to be worked on
@@ -64,14 +62,14 @@ def model_regression(label,feature,iter):
 	for i in range(iter):
 		if(i%5==0):
 			for j in range(14):
-				w = gradient_descent(w, label, feature, j)
+				w = gradient_descent(w, label, feature, j, 0.4)
 				all_loss[j]=lost_func(label,feature,w)
 			seq = zip(all_loss, range(14))
 			sorted_seq = sorted(seq,key=lambda x: x[0])
 			sorted_seq.reverse
 			idx_seq = [sorted_seq[i][1] for i in range(3)]
 		total_loss.append(lost_func(label,feature,w))
-		w = gradient_descent(w, label, feature, idx_seq[i%3])
+		w = gradient_descent(w, label, feature, idx_seq[i%3], 0.4)
 	total_loss.append(lost_func(label,feature,w))
 	# print(total_w)
 	return (w, total_loss)
@@ -112,11 +110,16 @@ for i in range(len(feature[0])):
 	feature[:,i]
 
 w = default_regression(label,feature)
-w2, loss_1 = random_regression(label,norm_feat, 1000)
-w3, loss_2 = model_regression(label,norm_feat, 1000)
+w2, loss_1 = random_regression(label,norm_feat, 10000)
+w3, loss_2 = model_regression(label,norm_feat, 10000)
 
-pplot.plot(range(len(loss_1)),loss_1)
-# pplot.plot(range(len(loss_2)),loss_2)
+pplot.plot(range(len(loss_1)),loss_1,label="Random selection")
+pplot.plot(range(len(loss_2)),loss_2,label="Loss function selection")
+pplot.legend()
+
+pplot.xlabel("iteration")
+pplot.ylabel("Loss function value")
+pplot.title("Number of gradient descent iteration verses a model's loss function")
 pplot.show()
 # print(w2)
 # print(w)
